@@ -13,7 +13,7 @@ number-sections: true
 \-\-\--
 
 ```{r packages}
-library(dplyr)
+library(dplyr)####patates
 library(purrr)
 library(readxl)
 library(stringr)
