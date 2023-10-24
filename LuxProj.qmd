@@ -1,0 +1,129 @@
+---
+title: "Luxemburg Project"
+format: pdf
+editor: visual
+execute: 
+  cache: true
+toc: true
+number-sections: true
+---
+
+## Luxemburg Data Project
+
+\-\-\--
+
+```{r packages}
+library(dplyr)
+library(purrr)
+library(readxl)
+library(stringr)
+library(janitor)
+
+```
+
+## Gettting Data
+
+```{r}
+url <- "https://github.com/b-rodrigues/rap4all/raw/master/datasets/vente-maison-2010-2021.xlsx"
+
+
+# Shortened url
+
+#url <- "https://is.gd/1vvBAc"
+
+
+raw_data <- tempfile(fileext = ".xlsx")
+
+
+download.file(url, raw_data, method = "auto", mode = "wb")
+
+
+sheets <- excel_sheets(raw_data)
+
+
+read_clean <- function(..., sheet){
+  
+  read_excel(..., sheet = sheet) |>
+    
+    mutate(year = sheet)
+  
+}
+
+
+raw_data <- map(
+  
+  sheets,
+  
+  ~read_clean(raw_data,
+              
+              skip = 10,
+              
+              sheet = .)
+  
+) |>
+  
+  bind_rows() |>
+  
+  clean_names()
+
+
+```
+
+Let's see the neat data:
+
+```{r}
+raw_data
+```
+
+Some variables has their original names and we will change them to English.
+
+```{r}
+raw_data <- raw_data |>
+  
+  rename(
+    
+    locality = commune,
+    
+    n_offers = nombre_doffres,
+    
+    average_price_nominal_euros = prix_moyen_annonce_en_courant,
+    
+    # average_price_m2_nominal_euros = prix_moyen_annonce_au_m2_en_courant,
+    
+    average_price_m2_nominal_euros = prix_moyen_annonce_au_m2_en_courant
+    
+  ) |>
+  
+  mutate(locality = str_trim(locality)) |>
+  
+  select(year, locality, n_offers, starts_with("average"))
+```
+
+```{r}
+raw_data |> 
+  filter(grepl('Luxembourg', locality)) |> 
+  count(locality)
+
+raw_data |> 
+  filter(grepl('P.tange', locality)) |> 
+  count(locality)
+```
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
