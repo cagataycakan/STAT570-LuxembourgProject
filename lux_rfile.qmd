@@ -9,7 +9,7 @@ toc: true
 number-section: true
 ---
 
-## Louxemboanjvdf project 
+## Louxemboanjvdf project
 
 1- We will use caching to prevent repetitive work
 
