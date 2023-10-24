@@ -1,0 +1,105 @@
+---
+title: "lux quatro"
+author: "ben"
+format: html
+editor: visual
+execute: 
+  cache: true
+toc: true
+number-section: true
+---
+
+## Louxemboanjvdf project 
+
+1- We will use caching to prevent repetitive work
+
+## The LiBs
+
+```{r}
+library(rio)
+library(dplyr)
+library(purrr)
+library(readxl)
+library(stringr)
+library(janitor)
+
+```
+
+# Belllow if you are not blind you can see codes
+
+```{r}
+#| echo:false
+# the link for the data 
+
+url= "https://is.gd/1vvBAc"
+
+read_clean <- function(..., sheet){
+  
+  read_excel(..., sheet = sheet) |>
+    
+    mutate(year = sheet)
+  
+}
+
+raw_data = tempfile(fileext = ".xlsx")
+
+
+
+download.file(url,raw_data,method="auto",
+              mode="wb")
+# ?download.file
+
+test=rio::import_list(raw_data)
+
+data=test[[1]]
+
+sheets = excel_sheets(raw_data) 
+
+raw_data2 = map(
+  sheets,
+  ~read_clean(raw_data,skip=10,sheet=.)
+) |> 
+  bind_rows() |> 
+  clean_names()
+
+
+raw_data3 <- raw_data2 |>
+
+  rename(
+
+    locality = commune,
+
+    n_offers = nombre_doffres,
+
+    average_price_nominal_euros = prix_moyen_annonce_en_courant,
+
+    average_price_m2_nominal_euros = prix_moyen_annonce_au_m2_en_courant
+
+  ) |>
+
+  mutate(locality = str_trim(locality)) |>
+
+  select(year, locality, n_offers, starts_with("average"))
+
+raw_data3[raw_data3=="*"]=NA
+raw_data4= na.omit(raw_data3)
+
+raw_data4 <- raw_data4 %>%
+  mutate_all(~gsub(",", ".", .))
+
+raw_data4 |> 
+  filter(grepl("P.tange",locality)) |> 
+  count(locality)
+
+raw_data4 |> 
+  filter(grepl("Luxembourg",locality)) |> 
+  count(locality)
+
+# ?str_trim
+```
+
+Some variables has their original names and we will change them to english .
+
+```{r}
+unique(raw_data4$locality[order(raw_data4$locality)])
+```
